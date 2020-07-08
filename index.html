@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>L-System</title>
+    <link href="css/style.css" rel="stylesheet">
+    <script src="js/lib/jquery.js"></script>
+    <script src="js/lib/three.js"></script>
+    <script src="js/lib/OrbitControls.js"></script>
+    <script src="js/utils/formUtils.js"></script>
+    <script src="js/models/TreeSettings.js"></script>
+    <script src="js/threeUtils.js"></script>
+</head>
+
+<body>
+<div id="control-panel">
+
+    <select id="preset" required onchange="changePreset(); enableBuildButton()">
+        <option value="" disabled selected>Select a preset</option>
+    </select>
+    <input type="button" id="renderbutton" disabled value="BUILD TREE" onclick="buildTree()">
+    <hr/>
+
+    <button type="button" class="collapsible" onclick="collapseModMenu()">Modify preset</button>
+
+    <div id="modmenu" style="display: none">
+        <span>Axiom</span> <input id="axiom" name="axiom" type="text"></input><br/>
+        <span>Rules</span> <textarea id="rules" name="rules" rows="5"></textarea><br/>
+        <span>Iterations</span> <input id="iterations" name="iterations" type="number" min="0"></input><br/>
+        <span>Delta</span> <input id="delta" name="delta" type="number"></input><br/>
+
+        <button type="button" class="collapsible" onclick="collapseAdvMenu()">View advanced settings</button>
+        <div id="advmenu" style="display: none">
+            <span>Branch Length</span> <input id="branchLength" name="branchLength" type="number" min="0.5" step="0.1"></input><br/>
+            <span>Branch Radius</span> <input id="branchRadius" name="branchRadius" type="number" min="0.2" max="2" step="0.05"></input><br/>
+            <span>Branch Reduction</span> <input id="branchReduction" name="branchReduction" type="number" min="0" max="0.5" step="0.01"></input><br/>
+            <span>Branch Min Radius</span> <input id="branchMinRadius" name="branchMinRadius" type="number" min="0.05" max="0.2" step="0.05"></input><br/>
+        </div>
+    </div>
+    <hr>
+    <input type="button" id="deleteLast"  value="DELETE LAST TREE" onclick="deleteLastTree()">
+    <input type="button" id="delete" value="DELETE ALL TREES" onclick="deleteAllTrees()">
+
+</div>
+
+
+<div id="DN">
+<label class="switch"><input type="checkbox" id="togBtn" value="DAY" onclick="changeDN()"><div class="slider round"></div></label>
+</div>
+
+
+<div id="legenda">
+    <span>
+        <b>F</b>: create a branch<br>
+        <b>X</b>: create a leaf<br>
+        <b>+, -</b>: rotate the branch right/left in x-axis<br>
+        <b>^, v</b>: rotate the branch respect y-axis<br>
+        <b><, ></b>: rotate the branch in z-axis
+    </span>
+</div>
+<div id="canvas-div"></div>
+
+<script src="js/utils/formUtils.js"></script>
+<script src="js/app.js"></script>
+<script src="js/buildTree.js"></script>
+<script src="js/utils/presets.js"></script>
+
+</body>
+
+
+
+
+
+</html>
