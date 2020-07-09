@@ -10,9 +10,9 @@ The project is written in Javascript with [Three.js](https://threejs.org/) frame
 ![](demo/demo.png)
 In this demo you can:
   - Turn day to night with the toggle button
-  - Select a tree preset from 11 options in select tag and modify the setting for the selected preset in the form below (axiom, rules, iterations, delta, branch lenght, ...)
+  - Select one of the 11 available presets and modify the preset settings in the form below (axiom, rules, iterations, delta, branch lenght, ...)
   - Build a tree choosing a groud point with mouse click and render with "BUILD TREE" button (if no ground point, default position is (0, 0, 0))
-  - Delete the last the tree inserted or all trees in scene respectively with "DELETE LAST TREE" and "DELETE ALL TREES" buttons
+  - Delete the last tree inserted or all trees in the scene respectively with "DELETE LAST TREE" and "DELETE ALL TREES" buttons
   
 
 
