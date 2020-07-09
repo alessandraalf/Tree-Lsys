@@ -18,8 +18,8 @@ In this demo you can:
 
 ## Presets
 - Common Tree A-F are 2D deterministic L-system tree derivations (based on [this article](http://algorithmicbotany.org/papers/abop/abop-ch1.pdf))
-- Tree A-C are 3D stochastic L-system tree derivation (uniform probability) 
-- Bush A-B are 3D determistic L-system tree derivation 
+- Tree A-C are 3D stochastic L-system tree derivations (uniform probability) 
+- Bush A-B are 3D determistic L-system tree derivations 
 
 
 ## Demo
