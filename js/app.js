@@ -10,10 +10,32 @@ let sky;
 let skyboxMaterial = skyGraphicInfo();
 let mainLight;
 let ambientLight;
+let ambientNightLight;
 let raycaster;
 var threshold = 0.1;
 
 var circleMesh = null;
+
+// OBJ and MTL loader
+let mtlLoader = new THREE.MTLLoader();
+let objLoader = new THREE.OBJLoader();
+
+
+const times = [];
+let fps;
+
+let car;
+let plane;
+
+const lim = 13.5;
+let clock = new THREE.Clock();
+let speed = 4;
+//let dir = new THREE.Vector3(1, 0, 0).normalize();
+let dirX = new THREE.Vector3(1, 0, 0).normalize();
+let move = new THREE.Vector3();
+let pos = new THREE.Vector3();
+let lookAt = new THREE.Vector3();
+
 
 
 function init() {
@@ -26,7 +48,11 @@ function init() {
     initLights();
     initGround();
     initSky();
+    initCar();
     initRenderer();
+
+    load3DObject();
+
 
     mouse = new THREE.Vector2(0, 0);
 
@@ -34,27 +60,31 @@ function init() {
     raycaster = new THREE.Raycaster();
     raycaster.params.Points.threshold = threshold;
 
-    render();
-    controls.addEventListener('change', render);
-    window.addEventListener('load', render)
-    window.addEventListener('resize', render);
+    //controls.addEventListener('change', render);
+    //window.addEventListener('load', render)
+    //window.addEventListener('resize', render);
     canvas.addEventListener('mousedown', onMouseDown, false);
+
+    window.addEventListener("keydown", onWASD, false);
+
+    requestAnimationFrame(render);
+
 }
 
 function initCamera() {
-    camera = new THREE.PerspectiveCamera(80, window.innerWidth / window.innerHeight, 1, 5000);
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 1000);
     camera.position.set(0, 15, 60);
 }
 
 function initControls() {
     controls = new THREE.OrbitControls(camera, canvas);
     controls.maxDistance = camera.far/10;
-    controls.minDistance = camera.near*10;
+    controls.minDistance = 10;
     controls.maxPolarAngle = 80 * Math.PI/180;
 }
 
 function initLights() {
-    mainLight = new THREE.PointLight(0xeeeeee, 200);
+    mainLight = new THREE.PointLight(0xeeeeee, 300);
     mainLight.position.set(35, 100, 100);
     mainLight.castShadow = true;
     mainLight.shadow.mapSize.width = 512;
@@ -64,21 +94,24 @@ function initLights() {
 
     ambientLight = new THREE.HemisphereLight(0xddeeff, 0x0f0e0d, 0.9);
 
+    ambientNightLight = new THREE.HemisphereLight(0x111111, 0x000000, 0);
+
     mainLight.name = "mainLight";
     ambientLight.name = "ambientLight";
+    ambientNightLight.name = "ambientNightLight";
 
-    scene.add(mainLight, ambientLight);
+    scene.add(mainLight, ambientLight, ambientNightLight);
 }
 
 function initGround() {
     let grassTexture = new THREE.TextureLoader().load('textures/grass.jpg');
     grassTexture.wrapS = THREE.RepeatWrapping;
     grassTexture.wrapT = THREE.RepeatWrapping;
-    grassTexture.repeat.x = 32;
-    grassTexture.repeat.y = 32;
+    grassTexture.repeat.x = 16;
+    grassTexture.repeat.y = 16;
 
-    let groundMaterial = new THREE.MeshPhongMaterial({map:grassTexture});
-    let groundGeometry = new THREE.CircleGeometry(700, 100);
+    let groundMaterial = new THREE.MeshPhongMaterial({map:grassTexture, shininess:5, fog:true});
+    let groundGeometry = new THREE.CircleBufferGeometry(100, 32);
 
     ground = new THREE.Mesh(groundGeometry, groundMaterial);
     ground.position.y = 0;
@@ -89,19 +122,38 @@ function initGround() {
 }
 
 function initSky() {
-    let skyGeometry = new THREE.SphereGeometry(700, 100, 100 );
+    let skyGeometry = new THREE.SphereBufferGeometry(100, 16, 16);
     sky = new THREE.Mesh(skyGeometry, skyboxMaterial);
     sky.name = "sky";
     scene.add( sky );
 }
 
+function initCar() {
+    car = {
+        car : buildCar(),
+        wheels : [],
+        position : new THREE.Vector3(),
+    };
+
+    car.car.castShadow = true;
+    car.car.receiveShadow = true;
+    scene.add(car.car);
+    car.wheels = [scene.getObjectByName('wheel1'), scene.getObjectByName('wheel2'),
+                    scene.getObjectByName('wheel3'), scene.getObjectByName('wheel4')
+    ];
+
+}
+
+
 function initRenderer() {
     // controllare parametri disponibili di WEBGL renderer
 
-    renderer = new THREE.WebGLRenderer( { antialias: true } );
+    renderer = new THREE.WebGLRenderer( { antialias: true, precision: 'highp' } );
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     renderer.setPixelRatio(window.devicePixelRatio);
+
+    //renderer.setPixelRatio(1);
 
     renderer.outputEncoding = THREE.GammaEncoding;
     renderer.gammaFactor = 2.2;
@@ -118,7 +170,37 @@ function initRenderer() {
 }
 
 function render() {
-    console.log("render")
+    const now = performance.now();
+    while (times.length > 0 && times[0] <= now - 1000) {
+        times.shift();
+    }
+    times.push(now);
+    fps = times.length;
+    $("#fps").text(fps);
+    //console.log("fps", fps);
+    //console.log("render");
+
+    setTimeout( function() {
+
+        requestAnimationFrame(render);
+
+    }, 1000 / 40 );
+
+    //plane op animate
+    if( plane !== null ) {
+        //plane.rotation.x += 0.01;
+        //plane.rotation.y += 0.02;
+
+        plane.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.5 * toRad));
+        let planePosition = new THREE.Vector3(0, 0, speed*0.1);
+        planePosition.applyQuaternion(plane.quaternion);
+        plane.position.add(planePosition);
+
+
+
+
+    }
+
     renderer.render( scene, camera );
 }
 
@@ -131,7 +213,7 @@ function onMouseDown(event) {
     var intersections = raycaster.intersectObject(ground);
     var intersection = ( intersections.length ) > 0 ? intersections[ 0 ] : null;
     if (intersection != null && circleMesh === null) {
-        var circle = new THREE.CircleGeometry(1, 32);
+        var circle = new THREE.CircleBufferGeometry(1, 16);
         var material = new THREE.MeshBasicMaterial( {color: 0x000000} );
         circleMesh = new THREE.Mesh(circle, material);
         circleMesh.rotateX(270*toRad);
@@ -143,24 +225,92 @@ function onMouseDown(event) {
         circleMesh.position.copy(intersection.point);
         circleMesh.position.add(new THREE.Vector3(0, 0.01, 0));
     }
-    render();
+    //render();
 }
+
+function onWASD(event) {
+    let keyCode = event.key;
+
+    if (Math.pow(car.car.position.x, 2)+Math.pow(car.car.position.z, 2)<=9050){
+        if (keyCode === 'w') {
+
+            let position = new THREE.Vector3(speed * 0.3, 0, 0);
+            position.applyQuaternion(car.car.quaternion);
+            car.position.add(position);
+            car.car.position.copy(car.position);
+
+            car.wheels.forEach(w => {
+                w.rotation.z -= position.length() / 3;
+            });
+
+        } else if (keyCode === 's') {
+            let position = new THREE.Vector3(-speed * 0.1, 0, 0);
+            position.applyQuaternion(car.car.quaternion);
+            car.position.add(position);
+            car.car.position.copy(car.position);
+
+            car.wheels.forEach(w => {
+                w.rotation.z += position.length();
+            });
+
+
+        } else if (keyCode === 'd') {
+            car.car.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -5 * toRad));
+            let position = new THREE.Vector3(+speed * 0.1, 0, 0);
+            position.applyQuaternion(car.car.quaternion);
+            car.position.add(position);
+            car.car.position.copy(car.position);
+
+            car.wheels.forEach(w => {
+                w.rotation.z -= position.length();
+            });
+
+
+        } else if (keyCode === 'a') {
+            car.car.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 5 * toRad));
+            let position = new THREE.Vector3(+speed * 0.1, 0, 0);
+            position.applyQuaternion(car.car.quaternion);
+            car.position.add(position);
+            car.car.position.copy(car.position);
+
+            car.wheels.forEach(w => {
+                w.rotation.z -= position.length();
+            });
+
+
+        }
+    }
+    else{
+        car.car.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 180 * toRad));
+        let position = new THREE.Vector3(1, 0, 0);
+
+        position.applyQuaternion(car.car.quaternion);
+        car.position.add(position);
+        car.car.position.copy(car.position);
+
+    }
+}
+
+
 
 // change scene appearance from Day to Night and vice versa
 function changeDN() {
     if(document.getElementById("togBtn").value === "DAY"){
         document.getElementById("togBtn").value = "NIGHT";
-        scene.remove(mainLight, ambientLight, sky);
-        ambientLight = new THREE.HemisphereLight(0x111111, 0x000000, 5);
-        scene.add(ambientLight);
+        mainLight.intensity = 0;
+        ambientLight.intensity = 0;
+        ambientNightLight.intensity= 5;
+        sky.material.color.set('black');
     }
     else{
         document.getElementById("togBtn").value = "DAY";
-        scene.remove(ambientLight);
-        initLights();
-        initSky();
+        ambientNightLight.intensity= 0;
+        mainLight.intensity = 200;
+        ambientLight.intensity = 0.9;
+        sky.material = skyboxMaterial;
+        sky.material.color.set('white');
     }
-    render();
+    //render();
 }
 
 init();

@@ -1,4 +1,6 @@
 let tree;
+let barkTotalGeometry;
+let leafTotalGeometry;
 
 // associative array {tree 'uuid' : tree position in the scene}
 let treeID = [];
@@ -7,31 +9,58 @@ let treeID = [];
 let woodMaterial = woodGraphicInfo();
 let leafMaterial = leafGraphicInfo();
 
+let branchGeometry;
 // define leaf geometry
-let leafGeometry = [buildLeafGeometry(0.3), buildLeafGeometry(1)];
+let leafGeometries = [buildLeafGeometry_v2(), buildLeafGeometry(), buildLeafGeometry_v3()];
 
 let mouseClick;
 const toRad = Math.PI/180;
 
 
 function buildTree() {
+
     let treeInfo = getTreeSettings();
 
     let rules = ruleToArray(treeInfo.rules);
 
     let treeString = treeStringDerivation(treeInfo, rules);
-    console.log("treeString", treeString);
+    //console.log("treeString", treeString);
 
-    tree = new THREE.Object3D();
+    tree = new THREE.Group();
+
+    barkTotalGeometry = new THREE.Geometry();
+    leafTotalGeometry = new THREE.Geometry();
+
+    let randomPos = new THREE.Vector3(Math.random() * (50 - (-50)) + (-50), 0, Math.random() * (50 - (-50)) + (-50));
+
+    tree.matrixAutoUpdate = false;
     let treeInitialPosition = (scene.getObjectByName('mouseClick') !== undefined) ?
-        scene.getObjectByName('mouseClick').position : new THREE.Vector3( 0, 0, 0 );
+        //scene.getObjectByName('mouseClick').position : new THREE.Vector3( 0, 0, 0 );
+        scene.getObjectByName('mouseClick').position : randomPos;
+
     checkTreePosition(treeInitialPosition);
 
-    buildTreeFromString(treeString, treeInfo);
+    // define branch geometry
+    branchGeometry = new THREE.CylinderGeometry(treeInfo.branchRadius*(1-treeInfo.branchReduction), treeInfo.branchRadius, treeInfo.branchLength, 8);
+    buildTreeFromString(treeString, treeInfo, treeInitialPosition);
 
     // activate shadows
     tree.castShadow = true;
     tree.receiveShadow = true;
+
+    barkTotalGeometry = new THREE.BufferGeometry().fromGeometry(barkTotalGeometry);
+    leafTotalGeometry = new THREE.BufferGeometry().fromGeometry(leafTotalGeometry);
+
+    tree.name = treeInfo.preset;
+
+    let barkMesh = new THREE.Mesh(barkTotalGeometry, woodMaterial);
+    barkMesh.castShadow = true;
+    barkMesh.receiveShadow = true;
+
+    let leafsMesh = new THREE.Mesh(leafTotalGeometry, leafMaterial);
+    leafsMesh.castShadow = true;
+    leafsMesh.receiveShadow = true;
+    tree.add(barkMesh, leafsMesh);
 
     scene.add(tree);
 
@@ -41,7 +70,7 @@ function buildTree() {
         scene.remove(scene.getObjectByName('mouseClick'));
         circleMesh = null;
     }
-    render();
+    //render();
 }
 
 
@@ -61,13 +90,13 @@ function getTreeSettings() {
 }
 
 // init treeStatus variables for specified tree
-function initTreeStatus(treeInfo) {
+function initTreeStatus(treeInfo, treeInitialPosition) {
     return {
         bRadius : treeInfo.branchRadius,
         bLength : treeInfo.branchLength,
+        bScale : 1.0,
 
-        currentPosition : (scene.getObjectByName('mouseClick') !== undefined) ?
-            scene.getObjectByName('mouseClick').position : new THREE.Vector3( 0, 0, 0 ),
+        currentPosition : treeInitialPosition.clone(),
         rotation : new THREE.Quaternion()
     };
 }
@@ -130,20 +159,21 @@ function treeStringDerivation(treeInfo, ruleArray){
 }
 
 // build tree structure from final derived string
-function buildTreeFromString(treeString, treeInfo){
-    let treeInitialStatus = initTreeStatus(treeInfo);
+function buildTreeFromString(treeString, treeInfo, treeInitialPosition){
+    let treeInitialStatus = initTreeStatus(treeInfo, treeInitialPosition);
     let stackState = [treeInitialStatus];
 
     for(var i = 0; i < treeString.length; i++) {
         var char = treeString.charAt(i);
         if(char === "F") {
             let treeStatus = stackState[stackState.length-1];
-            tree.add(buildBranch(treeStatus, treeInfo));
+            barkTotalGeometry.mergeMesh(buildBranch(treeStatus, treeInfo));
             continue;
         }
         if(char === "X") {
             let treeStatus = stackState[stackState.length-1];
-            tree.add(buildLeaf(treeStatus, treeInfo.preset));
+            leafTotalGeometry.mergeMesh(buildLeaf(treeStatus, treeInfo.preset));
+
             continue;
         }
         if(char === "+") {
@@ -195,6 +225,7 @@ function cloneTreeStatus(treeStatus) {
     return {
         bRadius : treeStatus.bRadius,
         bLength : treeStatus.bLength,
+        bScale : treeStatus.bScale,
         currentPosition : new THREE.Vector3().copy(treeStatus.currentPosition),
         rotation : new THREE.Quaternion().copy(treeStatus.rotation)
     }
@@ -205,8 +236,11 @@ function buildBranch(treeStatus, treeInfo) {
     position.applyQuaternion(treeStatus.rotation);
     treeStatus.currentPosition.add(position);
 
-    var branchGeometry = new THREE.CylinderBufferGeometry(treeStatus.bRadius*(1-treeInfo.branchReduction), treeStatus.bRadius, treeStatus.bLength, 16);
-    var branch = new THREE.Mesh(branchGeometry, woodMaterial);
+    var branchG = branchGeometry.clone();
+    //branchG = branchG.scale(treeStatus.bScale, treeStatus.bScale, treeStatus.bScale);
+    var branch = new THREE.Mesh(branchG);
+
+    branch.scale.set(treeStatus.bScale, treeStatus.bScale, treeStatus.bScale);
     branch.quaternion.copy(treeStatus.rotation);
     branch.position.copy(treeStatus.currentPosition);
     treeStatus.currentPosition.add(position);
@@ -220,6 +254,11 @@ function buildBranch(treeStatus, treeInfo) {
         treeStatus.bLength = (treeStatus.bLength - treeInfo.branchReduction*treeStatus.bLength);
     }
 
+    // bScale update
+    if ((treeStatus.bScale - treeInfo.branchReduction*treeStatus.bScale) > 0){
+        treeStatus.bScale = treeStatus.bScale - treeInfo.branchReduction*treeStatus.bScale;
+    }
+
     branch.castShadow=true;
     branch.receiveShadow = true;
 
@@ -230,20 +269,28 @@ function buildBranch(treeStatus, treeInfo) {
 function buildLeaf(treeStatus, preset) {
     let angle = Math.random()*2*Math.PI;
     var leafPosition = new THREE.Vector3().copy(treeStatus.currentPosition);
-    leafPosition.add(new THREE.Vector3(treeStatus.bRadius*Math.sin(angle), 0.0, treeStatus.bRadius*Math.cos(angle)));
+    leafPosition.add(new THREE.Vector3(treeStatus.bRadius*Math.sin(angle)*0.7, 0.0, treeStatus.bRadius*Math.cos(angle)*0.7));
+
     if(preset < 3){
-        var leaf = new THREE.Mesh(leafGeometry[1], leafMaterial);
+        //var leafG = new THREE.BufferGeometry().copy(leafGeometry);
+        var leafG = leafGeometries[1].clone();
+        var leaf = new THREE.Mesh(leafG);
+        leaf.scale.set(0.2, 0.2, 0.2);
     }else {
-        var leaf = new THREE.Mesh(leafGeometry[0], leafMaterial);
+        //var leafG = new THREE.BufferGeometry().copy(leafGeometry);
+        var leafG = leafGeometries[1].clone();
+        leafG.scale(0.3, 0.3, 0.3);
+        var leaf = new THREE.Mesh(leafG, leafMaterial);
     }
-    leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.random()*2*Math.PI));
+    leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.random()*Math.PI/2));
     leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random()*2*Math.PI));
-    leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.random()*2*Math.PI));
+    leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.random()*Math.PI/2));
 
     leaf.position.copy(leafPosition);
 
+
     leaf.castShadow= true;
-    leaf.receiveShadow = true;
+    //leaf.receiveShadow = true;
     return leaf;
 }
 

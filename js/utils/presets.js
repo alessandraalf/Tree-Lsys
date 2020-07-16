@@ -132,13 +132,13 @@ for(index in presets) {
 //change parameters in html form based on #preset select option selected
 function changePreset() {
     let preset = $("#preset").val();
-    let treeSettings = new TreeSettings(presets[preset])
-    $("#axiom").val(treeSettings.axiom)
-    $("#rules").val(treeSettings.rules)
-    $("#iterations").val(treeSettings.iterations)
-    $("#delta").val(treeSettings.delta)
-    $("#branchLength").val(treeSettings.branchLength)
-    $("#branchRadius").val(treeSettings.branchRadius)
-    $("#branchReduction").val(treeSettings.branchReduction)
-    $("#branchMinRadius").val(treeSettings.branchMinRadius)
+    let treeSettings = new TreeSettings(presets[preset]);
+    $("#axiom").val(treeSettings.axiom);
+    $("#rules").val(treeSettings.rules);
+    $("#iterations").val(treeSettings.iterations);
+    $("#delta").val(treeSettings.delta);
+    $("#branchLength").val(treeSettings.branchLength);
+    $("#branchRadius").val(treeSettings.branchRadius);
+    $("#branchReduction").val(treeSettings.branchReduction);
+    $("#branchMinRadius").val(treeSettings.branchMinRadius);
 }

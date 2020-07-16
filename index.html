@@ -7,6 +7,8 @@
     <script src="js/lib/jquery.js"></script>
     <script src="js/lib/three.js"></script>
     <script src="js/lib/OrbitControls.js"></script>
+    <script src="js/lib/obj.js"></script>
+    <script src="js/lib/mtl.js"></script>
     <script src="js/utils/formUtils.js"></script>
     <script src="js/models/TreeSettings.js"></script>
     <script src="js/threeUtils.js"></script>
@@ -48,9 +50,20 @@
 <label class="switch"><input type="checkbox" id="togBtn" value="DAY" onclick="changeDN()"><div class="slider round"></div></label>
 </div>
 
+<div id="fps-div">FPS:
+    <label id="fps"></label>
+</div>
+
 
 <div id="legenda">
-    <span>
+    <span><b>CAR Commands</b><br>
+        <b>W</b>: go forward<br>
+        <b>S</b>: go backward<br>
+        <b>A</b>: turn left<br>
+        <b>D</b>: turn right<br>
+    </span>
+    <hr>
+    <span><b>TREE operations</b><br>
         <b>F</b>: create a branch<br>
         <b>X</b>: create a leaf<br>
         <b>+, -</b>: rotate the branch right/left in x-axis<br>

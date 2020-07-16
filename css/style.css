@@ -19,6 +19,18 @@
     overflow: auto;
 }
 
+#fps-div {
+    border: 1px solid;
+    border-color: rgb(166, 166, 166);
+    background-color: white;
+    border-radius: 4px;
+    position: absolute;
+    padding: 10px;
+    left: 10px;
+    top: 10px;
+    overflow: auto;
+}
+
 #legenda {
     font-family: Verdana, sans-serif;
     font-size: 12px;
