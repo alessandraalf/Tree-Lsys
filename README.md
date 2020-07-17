@@ -25,7 +25,7 @@ In this demo you can:
 
 
 ## Extra
-- Overall performance optimized (minimizing calls to WEBGLrenderer render method and scene dimensions)
+- Overall performance optimization (minimizing calls to WEBGLrenderer render method, reducing scene dimensions and limiting fps)
 - Airplane model3D, loaded via OBJ and MTL loaders, with default animation
 - Car Object controlled by the user via WASD commands
 
