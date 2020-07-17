@@ -4,6 +4,7 @@ let leafTotalGeometry;
 
 // associative array {tree 'uuid' : tree position in the scene}
 let treeID = [];
+let treesBB = [];
 
 // initialize wood and leaf material
 let woodMaterial = woodGraphicInfo();
@@ -11,7 +12,7 @@ let leafMaterial = leafGraphicInfo();
 
 let branchGeometry;
 // define leaf geometry
-let leafGeometries = [buildLeafGeometry_v2(), buildLeafGeometry(), buildLeafGeometry_v3()];
+let leafGeometries = [buildLeafGeometry(), buildLeafGeometry_v2(), buildLeafGeometry_v3()];
 
 let mouseClick;
 const toRad = Math.PI/180;
@@ -24,7 +25,6 @@ function buildTree() {
     let rules = ruleToArray(treeInfo.rules);
 
     let treeString = treeStringDerivation(treeInfo, rules);
-    //console.log("treeString", treeString);
 
     tree = new THREE.Group();
 
@@ -35,7 +35,6 @@ function buildTree() {
 
     tree.matrixAutoUpdate = false;
     let treeInitialPosition = (scene.getObjectByName('mouseClick') !== undefined) ?
-        //scene.getObjectByName('mouseClick').position : new THREE.Vector3( 0, 0, 0 );
         scene.getObjectByName('mouseClick').position : randomPos;
 
     checkTreePosition(treeInitialPosition);
@@ -57,22 +56,34 @@ function buildTree() {
     barkMesh.castShadow = true;
     barkMesh.receiveShadow = true;
 
-    let leafsMesh = new THREE.Mesh(leafTotalGeometry, leafMaterial);
+    let leafsMesh;
+    if(treeInfo.preset < 5){
+        leafsMesh = new THREE.Mesh(leafTotalGeometry, leafMaterial);
+    }
+    else{
+        leafsMesh = new THREE.Mesh(leafTotalGeometry, new THREE.MeshPhongMaterial({color:'#0c3618', shiness: 1}));
+    }
+
     leafsMesh.castShadow = true;
     leafsMesh.receiveShadow = true;
-    tree.add(barkMesh, leafsMesh);
 
+    tree.add(barkMesh, leafsMesh);
     scene.add(tree);
 
     treeID[tree.uuid] = treeInitialPosition;
 
+    // mesh bounding box for collision detection
+    let boxMesh = new THREE.Mesh(new THREE.BoxGeometry(treeInfo.branchRadius*4, 20, treeInfo.branchRadius*3));
+    boxMesh.position.set(treeInitialPosition.x, treeInitialPosition.y, treeInitialPosition.z);
+    treesBB[tree.uuid] = boxMesh;
+
+    // clear raycast click
     if (scene.getObjectByName('mouseClick') !== undefined){
         scene.remove(scene.getObjectByName('mouseClick'));
         circleMesh = null;
     }
-    //render();
-}
 
+}
 
 // get (updated) settings from html form
 function getTreeSettings() {
@@ -95,7 +106,6 @@ function initTreeStatus(treeInfo, treeInitialPosition) {
         bRadius : treeInfo.branchRadius,
         bLength : treeInfo.branchLength,
         bScale : 1.0,
-
         currentPosition : treeInitialPosition.clone(),
         rotation : new THREE.Quaternion()
     };
@@ -117,9 +127,9 @@ function ruleToArray(rules) {
 
 // remove an existent tree, if the new one has the same initial position
 function checkTreePosition(treeInitialPosition){
-    for(var id in treeID) {
+    for(let id in treeID) {
         if (treeID[id].equals(treeInitialPosition)) {
-            var treeToRemove = scene.getObjectByProperty('uuid', id);
+            let treeToRemove = scene.getObjectByProperty('uuid', id);
             scene.remove(treeToRemove);
             delete treeID[id];
             break;
@@ -265,32 +275,31 @@ function buildBranch(treeStatus, treeInfo) {
     return branch;
 }
 
-
 function buildLeaf(treeStatus, preset) {
     let angle = Math.random()*2*Math.PI;
     var leafPosition = new THREE.Vector3().copy(treeStatus.currentPosition);
     leafPosition.add(new THREE.Vector3(treeStatus.bRadius*Math.sin(angle)*0.7, 0.0, treeStatus.bRadius*Math.cos(angle)*0.7));
 
-    if(preset < 3){
-        //var leafG = new THREE.BufferGeometry().copy(leafGeometry);
-        var leafG = leafGeometries[1].clone();
+    if(preset < 3) {
+        var leafG = leafGeometries[0].clone();
         var leaf = new THREE.Mesh(leafG);
         leaf.scale.set(0.2, 0.2, 0.2);
+    }else if(preset < 5){
+        var leafG = leafGeometries[0].clone();
+        var leaf = new THREE.Mesh(leafG);
+        leaf.scale.set(0.2, 0.12, 0.2);
     }else {
-        //var leafG = new THREE.BufferGeometry().copy(leafGeometry);
         var leafG = leafGeometries[1].clone();
-        leafG.scale(0.3, 0.3, 0.3);
-        var leaf = new THREE.Mesh(leafG, leafMaterial);
-    }
+        //leafG.scale(0.15, 0.2, 0.15);
+        var leaf = new THREE.Mesh(leafG);
+}
     leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.random()*Math.PI/2));
     leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.random()*2*Math.PI));
     leaf.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.random()*Math.PI/2));
 
     leaf.position.copy(leafPosition);
 
-
     leaf.castShadow= true;
-    //leaf.receiveShadow = true;
     return leaf;
 }
 

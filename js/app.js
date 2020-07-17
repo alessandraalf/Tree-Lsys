@@ -20,22 +20,14 @@ var circleMesh = null;
 let mtlLoader = new THREE.MTLLoader();
 let objLoader = new THREE.OBJLoader();
 
-
 const times = [];
 let fps;
 
 let car;
 let plane;
 
-const lim = 13.5;
 let clock = new THREE.Clock();
 let speed = 4;
-//let dir = new THREE.Vector3(1, 0, 0).normalize();
-let dirX = new THREE.Vector3(1, 0, 0).normalize();
-let move = new THREE.Vector3();
-let pos = new THREE.Vector3();
-let lookAt = new THREE.Vector3();
-
 
 
 function init() {
@@ -53,22 +45,16 @@ function init() {
 
     load3DObject();
 
-
     mouse = new THREE.Vector2(0, 0);
 
     // mouseClick position to build a new tree
     raycaster = new THREE.Raycaster();
     raycaster.params.Points.threshold = threshold;
 
-    //controls.addEventListener('change', render);
-    //window.addEventListener('load', render)
-    //window.addEventListener('resize', render);
     canvas.addEventListener('mousedown', onMouseDown, false);
-
     window.addEventListener("keydown", onWASD, false);
 
     requestAnimationFrame(render);
-
 }
 
 function initCamera() {
@@ -125,6 +111,7 @@ function initSky() {
     let skyGeometry = new THREE.SphereBufferGeometry(100, 16, 16);
     sky = new THREE.Mesh(skyGeometry, skyboxMaterial);
     sky.name = "sky";
+    sky.matrixAutoUpdate = false;
     scene.add( sky );
 }
 
@@ -144,10 +131,17 @@ function initCar() {
 
 }
 
+function animatePlane(){
+    if( plane !== null ) {
+        plane.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.5 * toRad));
+        let planePosition = new THREE.Vector3(0, 0, speed * 0.1);
+        planePosition.applyQuaternion(plane.quaternion);
+        plane.position.add(planePosition);
+    }
+
+}
 
 function initRenderer() {
-    // controllare parametri disponibili di WEBGL renderer
-
     renderer = new THREE.WebGLRenderer( { antialias: true, precision: 'highp' } );
     renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -158,15 +152,12 @@ function initRenderer() {
     renderer.outputEncoding = THREE.GammaEncoding;
     renderer.gammaFactor = 2.2;
 
-
     renderer.physicallyCorrectLights = true;
 
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    // console.log(canvas)
     canvas.appendChild( renderer.domElement );
-
 }
 
 function render() {
@@ -177,31 +168,14 @@ function render() {
     times.push(now);
     fps = times.length;
     $("#fps").text(fps);
-    //console.log("fps", fps);
-    //console.log("render");
 
+    // limit fps
     setTimeout( function() {
-
         requestAnimationFrame(render);
-
     }, 1000 / 40 );
 
-    //plane op animate
-    if( plane !== null ) {
-        //plane.rotation.x += 0.01;
-        //plane.rotation.y += 0.02;
-
-        plane.quaternion.multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), 0.5 * toRad));
-        let planePosition = new THREE.Vector3(0, 0, speed*0.1);
-        planePosition.applyQuaternion(plane.quaternion);
-        plane.position.add(planePosition);
-
-
-
-
-    }
-
-    renderer.render( scene, camera );
+    animatePlane();
+    renderer.render(scene, camera);
 }
 
 function onMouseDown(event) {
@@ -225,9 +199,10 @@ function onMouseDown(event) {
         circleMesh.position.copy(intersection.point);
         circleMesh.position.add(new THREE.Vector3(0, 0.01, 0));
     }
-    //render();
 }
 
+// function to define car movement based on WASD key input
+// added collision detection
 function onWASD(event) {
     let keyCode = event.key;
 
@@ -289,9 +264,42 @@ function onWASD(event) {
         car.car.position.copy(car.position);
 
     }
+
+
+
+    detectCollision(car.car.children[2], treesBB);
+
+
 }
 
+// detect collision between car and trees using geometries' bounding boxes
+function detectCollision(car, trees){
+    car.geometry.computeBoundingBox();
+    car.updateMatrixWorld();
 
+    let box1 = car.geometry.boundingBox.clone();
+    box1.applyMatrix4(car.matrixWorld);
+
+    for (let id in trees){
+        console.log(tree, "tree");
+        trees[id].geometry.computeBoundingBox();
+        trees[id].updateMatrixWorld();
+
+        let box2 = trees[id].geometry.boundingBox.clone();
+        box2.applyMatrix4(trees[id].matrixWorld);
+
+        if(box1.intersectsBox(box2)) {
+            console.log("bang");
+            var treeToRemove = scene.getObjectByProperty('uuid', id);
+            scene.remove(treeToRemove);
+            delete treeID[id];
+            delete treesBB[id];
+
+            return true;
+        }
+    }
+    return false;
+}
 
 // change scene appearance from Day to Night and vice versa
 function changeDN() {
@@ -312,5 +320,6 @@ function changeDN() {
     }
     //render();
 }
+
 
 init();

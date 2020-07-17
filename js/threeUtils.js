@@ -1,5 +1,3 @@
-
-
 //define sky material with texture
 function skyGraphicInfo(){
     let skyTexture = new THREE.TextureLoader().load('textures/sky2.jpg');
@@ -9,7 +7,6 @@ function skyGraphicInfo(){
     skyMaterial.side = THREE.BackSide;
     return skyMaterial;
 }
-
 
 //define wood material with texture
 function woodGraphicInfo(){
@@ -26,65 +23,7 @@ function leafGraphicInfo(){
     //leafTexture.wrapS = THREE.RepeatWrapping;
     //leafTexture.wrapT = THREE.RepeatWrapping;
     let leafMaterial = new THREE.MeshPhongMaterial({map: leafTexture, shininess:0});
-
-    //let leafMaterial = new THREE.MeshPhongMaterial({color:'#2e3c3c', shininess:0});
     return leafMaterial;
-}
-
-//build default leaf geometry
-function buildLeafGeometry_v3() {
-    var leafGeometry = new THREE.BufferGeometry();
-
-    var vertices = new Float32Array( [
-        0, 0, 0,
-        -0.5, 0.5, 0.5,
-        0.5, 0.5, 0.5,
-        -0.75, 1, 0.5,
-        0.75, 1, 0.5,
-        0, 2.5, 0
-    ] );
-
-    var faces = new Uint32Array([
-        0, 1, 3,
-        0, 3, 5,
-        0, 5, 4,
-        0, 4, 2,
-        3, 1, 0,
-        5, 3, 0,
-        4, 5, 0,
-        2, 4, 0
-    ]);
-
-    /*var uvs = new Float32Array([
-        0, 0,
-        0, 1,
-        1, 1,
-        0, 0,
-        0, 1,
-        1, 1,
-        0, 0,
-        0, 1,
-    ]);
-
-     */
-
-    var norm = new Float32Array([
-        -0.25, -0.125, -0.125,
-        -1.25, 0, -1.875,
-        1.25, 0, -1.875,
-        0.25, -0.125, -0.125,
-        0.25, 0.125, 0.125,
-        1.25, 0, 1.875,
-        -1.25, 0, 1.875,
-        -0.25, 0.125, 0.125
-    ]);
-
-    leafGeometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
-    //leafGeometry.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
-    leafGeometry.setAttribute('normal', new THREE.BufferAttribute(norm, 3));
-    leafGeometry.setIndex(new THREE.BufferAttribute(faces, 1 ));
-
-    return leafGeometry;
 }
 
 //build default leaf geometry
@@ -132,51 +71,18 @@ function buildLeafGeometry() {
     return leafGeometry;
 }
 
+//build default leaf geometry_v2
 function buildLeafGeometry_v2(){
 
     var leafShape = new THREE.Shape();
     leafShape.moveTo(0,0);
 
-    /*
-    leafShape.bezierCurveTo( 0, 0, 0.5, 0, 0.5, 1 );
-    leafShape.bezierCurveTo( 0.5, 1, 0.35, 1.5, 0, 2 );
-    leafShape.bezierCurveTo( 0, 2, -0.35, 1.5, -0.5, 1 );
-    leafShape.bezierCurveTo( -0.5, 1, -0.5, 0, 0, 0 );
-
-     */
-
-    /*
-    leafShape.bezierCurveTo( 0, 0, 0.05, 0.25, 0.05, 1);
-
-    leafShape.bezierCurveTo( 0.05, 1, 0.5, 1, 0.5, 2 );
-    leafShape.bezierCurveTo( 0.5, 2, 0.35, 2.5, 0, 3 );
-    leafShape.bezierCurveTo( 0, 3, -0.35, 2.5, -0.5, 2 );
-    leafShape.bezierCurveTo( -0.5, 2, -0.5, 1, -0.05, 1 );
-
-    leafShape.bezierCurveTo( -0.05, 1, -0.05, 0.25, 0, 0);
-
-     */
-
-    leafShape.bezierCurveTo( 0, 0, 0.05, 0.25, 0.05, 0.7);
-
-    leafShape.bezierCurveTo( 0.05, 0.7, 1, 0, 0, 1.5);
-
-    leafShape.bezierCurveTo( 0, 1.5, -1, 0, -0.05, 0.7 );
-
-    leafShape.bezierCurveTo( -0.05, 0.7, -0.05, 0.25, 0, 0);
+    leafShape.bezierCurveTo( 0, 0, 0.05, 0.25, 0.02, 0.65);
+    leafShape.bezierCurveTo( 0.02, 0.65, 1, 0, 0, 1.5);
+    leafShape.bezierCurveTo( 0, 1.5, -1, 0, -0.02, 0.65 );
+    leafShape.bezierCurveTo( -0.02, 0.65, -0.02, 0.25, 0, 0);
 
 
-/*
-    let extrudeSettings = {
-        steps: 2,
-        depth: 0.05,
-        bevelEnabled: false,
-        bevelOffset: 1,
-        bevelSegments: 1
-    };
-
-    let leafGeometry = new THREE.ExtrudeBufferGeometry(leafShape, extrudeSettings );
-*/
     let leafGeometry = new THREE.ShapeGeometry(leafShape);
 
     return leafGeometry;
@@ -187,13 +93,9 @@ function buildLeafGeometry_v3(){
     var leafShape = new THREE.Shape();
     leafShape.moveTo(0,0);
 
-
     leafShape.bezierCurveTo( 0, 0, 0.05, 0.25, 0.05, 0.7);
-
     leafShape.bezierCurveTo( 0.05, 0.7, 1, 0, 0, 1.5);
-
     leafShape.bezierCurveTo( 0, 1.5, -1, 0, -0.05, 0.7 );
-
     leafShape.bezierCurveTo( -0.05, 0.7, -0.05, 0.25, 0, 0);
 
     let extrudeSettings = {
@@ -211,7 +113,7 @@ function buildLeafGeometry_v3(){
     return leafGeometry;
 }
 
-
+// load plane .obj .mtl object using loaders
 function load3DObject(){
     mtlLoader.load('plane/plane.mtl', function(materials) {
         materials.preload();
@@ -227,21 +129,14 @@ function load3DObject(){
             scene.add(plane);
 
             plane.traverse( function( child ) {
-
                 if ( child.isMesh ) {
-
                     child.castShadow = true;
                     child.receiveShadow = true;
-
                 }
-
             } );
-            //plane.castShadow = true;
         } );
     } );
-
 }
-
 
 //build car
 function buildCar() {
@@ -257,13 +152,9 @@ function buildCar() {
     car.add(carLight1);
     car.add(carLight2);
 
-
-    let carbodyGeometry = new THREE.Geometry();
-
     let car1Texture = new THREE.TextureLoader().load('textures/car2.png');
     let car2Texture = new THREE.TextureLoader().load('textures/car.png');
     let wheelTexture = new THREE.TextureLoader().load('textures/wheel2.png');
-
 
     let car1Material = [
         new THREE.MeshPhongMaterial({map: car1Texture}),
@@ -288,8 +179,8 @@ function buildCar() {
         new THREE.MeshPhongMaterial({map: wheelTexture, color:'white'})
     ];
 
-
     let carGeometry1 = new THREE.BoxGeometry(6, 2, 4, 0, 0, 0);
+    console.log(carGeometry1.computeBoundingBox());
     let carMesh1 = new THREE.Mesh(carGeometry1, car1Material);
     carMesh1.position.set(0, 2, 0);
     car.add(carMesh1);
@@ -320,7 +211,6 @@ function buildCar() {
     wheel2.name = 'wheel2';
     car.add(wheel2);
 
-
     let wheel3 = new THREE.Mesh(wheelClone, wheelMaterial);
     wheel3.position.set(2, 1, -2);
     wheel3.name = 'wheel3';
@@ -331,14 +221,8 @@ function buildCar() {
     wheel4.name = 'wheel4';
     car.add(wheel4);
 
-
-    //wheels.castShadow = true;
-
-    //car.add(wheels);
-
     return car;
 }
-
 
 //delete last tree added to scene
 function deleteLastTree(){
@@ -347,7 +231,7 @@ function deleteLastTree(){
     var treeToRemove = scene.getObjectByProperty('uuid', lastTreeId);
     scene.remove(treeToRemove);
     delete treeID[lastTreeId];
-    //render();
+    delete treesBB[lastTreeId];
 }
 
 //delete all trees in scene
@@ -356,6 +240,6 @@ function deleteAllTrees() {
         var treeToRemove = scene.getObjectByProperty('uuid', id);
         scene.remove(treeToRemove);
         delete treeID[id];
-        //render();
+        delete treesBB[id];
     }
 }
