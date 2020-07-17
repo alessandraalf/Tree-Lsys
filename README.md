@@ -25,8 +25,10 @@ In this demo you can:
 
 
 ## Extra
-- Airplane model3D, loaded via OBJ and MTL loaders, with deafult animation.
-- Car Object controlled by the user via WASD commands.
+- Overall performance optimized (minimizing calls to WEBGLrenderer render method and scene dimensions)
+- Airplane model3D, loaded via OBJ and MTL loaders, with deafult animation
+- Car Object controlled by the user via WASD commands
+
 
 ## Demo
 Check the project running [here](https://alessandraalf.github.io/Tree-Lsys).
