@@ -9,6 +9,7 @@ The project is written in Javascript with [Three.js](https://threejs.org/) frame
 **WEBGL** API. 
 
 ![](demo/demo.png)
+
 In this demo you can:
   - Turn day to night with the toggle button
   - Select one of the 11 available presets and modify the preset settings in the form below (axiom, rules, iterations, delta, branch lenght, ...)
